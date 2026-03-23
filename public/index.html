@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Today</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
+      --border: #2e2e2e; --accent: #7c6af7; --accent2: #a78bfa;
+      --text: #f0f0f0; --muted: #6b7280; --green: #34d399; --red: #f87171;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    header { padding: 24px 32px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .date-display h1 { font-size: 28px; font-weight: 700; }
+    .date-display p { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .header-actions { display: flex; gap: 10px; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--border); }
+    .main { flex: 1; display: flex; overflow: hidden; }
+    .tasks-panel { flex: 1; padding: 24px 32px; overflow-y: auto; }
+    .ai-panel { width: 380px; border-left: 1px solid var(--border); display: flex; flex-direction: column; background: var(--surface); }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .progress-bar { width: 120px; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+    .progress-text { font-size: 12px; color: var(--muted); }
+    .add-task-row { display: flex; gap: 8px; margin-bottom: 20px; }
+    .task-input { flex: 1; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.15s; }
+    .task-input:focus { border-color: var(--accent); }
+    .task-input::placeholder { color: var(--muted); }
+    .task-list { display: flex; flex-direction: column; gap: 6px; }
+    .task-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; transition: all 0.15s; }
+    .task-item:hover { border-color: var(--accent); background: var(--surface2); }
+    .task-item.done { opacity: 0.5; }
+    .task-item.done .task-text { text-decoration: line-through; color: var(--muted); }
+    .checkbox { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 5px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .checkbox:hover { border-color: var(--accent); }
+    .checkbox.checked { background: var(--accent); border-color: var(--accent); }
+    .checkbox.checked::after { content: ''; width: 5px; height: 9px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); }
+    .task-text { flex: 1; font-size: 15px; line-height: 1.4; }
+    .task-priority { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+    .priority-high { background: rgba(248,113,113,0.15); color: var(--red); }
+    .priority-med { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .priority-low { background: rgba(52,211,153,0.15); color: var(--green); }
+    .delete-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; opacity: 0; transition: opacity 0.15s, color 0.15s; padding: 2px 6px; }
+    .task-item:hover .delete-btn { opacity: 1; }
+    .delete-btn:hover { color: var(--red); }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+    .ai-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .ai-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .ai-title { font-weight: 600; font-size: 15px; }
+    .ai-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .message { max-width: 90%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+    .message.user { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .message.assistant { background: var(--surface2); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .typing { display: flex; gap: 4px; align-items: center; padding: 12px 14px; }
+    .typing span { width: 7px; height: 7px; background: var(--muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    .ai-input-row { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+    .ai-input { flex: 1; padding: 9px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; outline: none; resize: none; font-family: inherit; transition: border-color 0.15s; max-height: 100px; }
+    .ai-input:focus { border-color: var(--accent); }
+    .ai-input::placeholder { color: var(--muted); }
+    .send-btn { background: var(--accent); color: white; border: none; border-radius: 8px; width: 36px; cursor: pointer; font-size: 16px; transition: background 0.15s; flex-shrink: 0; }
+    .send-btn:hover { background: var(--accent2); }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .quick-prompts { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+    .quick-prompt { font-size: 12px; padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; cursor: pointer; color: var(--muted); transition: all 0.15s; white-space: nowrap; }
+    .quick-prompt:hover { border-color: var(--accent); color: var(--text); }
+    @media (max-width: 768px) {
+      .main { flex-direction: column; }
+      .ai-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); height: 50vh; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="date-display">
+      <h1 id="greeting">Good morning</h1>
+      <p id="date-str"></p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="clearDone()">Clear done</button>
+      <button class="btn btn-primary" onclick="focusAdd()">+ Add task</button>
+    </div>
+  </header>
+  <div class="main">
+    <div class="tasks-panel">
+      <div class="section-header">
+        <span class="section-title">Tasks for today</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="progress-text" id="progress-text">0 / 0</span>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="add-task-row">
+        <input id="task-input" class="task-input" placeholder="Add a task..." onkeydown="handleTaskKey(event)" />
+        <select id="priority-select" class="task-input" style="width:110px;flex:none">
+          <option value="low">Low</option>
+          <option value="med" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button class="btn btn-primary" onclick="addTask()">Add</button>
+      </div>
+      <div id="task-list" class="task-list"></div>
+      <div id="empty-state" class="empty-state" style="display:none">
+        <div class="emoji">🌤️</div>
+        <p>No tasks yet. Add one above or ask Claude for suggestions!</p>
+      </div>
+    </div>
+    <div class="ai-panel">
+      <div class="ai-header">
+        <div class="ai-dot"></div>
+        <span class="ai-title">Claude</span>
+      </div>
+      <div id="ai-messages" class="ai-messages">
+        <div class="message assistant">Hey! I am Claude. I can help you plan your day, prioritize tasks, or suggest what to focus on. What would you like to tackle today?</div>
+      </div>
+      <div class="quick-prompts">
+        <span class="quick-prompt" onclick="sendQuick('Plan my day')">Plan my day</span>
+        <span class="quick-prompt" onclick="sendQuick('What should I focus on?')">What to focus on?</span>
+        <span class="quick-prompt" onclick="sendQuick('Suggest 5 productive tasks')">Suggest tasks</span>
+        <span class="quick-prompt" onclick="sendQuick('Help me prioritize')">Prioritize</span>
+      </div>
+      <div class="ai-input-row">
+        <textarea id="ai-input" class="ai-input" placeholder="Ask Claude..." rows="1" onkeydown="handleAIKey(event)" oninput="autoResize(this)"></textarea>
+        <button id="send-btn" class="send-btn" onclick="sendMessage()">&#10148;</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('today-tasks') || '[]');
+    let chatHistory = [];
+    let isLoading = false;
+    function saveTasks() { localStorage.setItem('today-tasks', JSON.stringify(tasks)); }
+    function initHeader() {
+      const now = new Date();
+      const h = now.getHours();
+      document.getElementById('greeting').textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('date-str').textContent = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    }
+    function updateProgress() {
+      const total = tasks.length, done = tasks.filter(t => t.done).length;
+      document.getElementById('progress-text').textContent = done + ' / ' + total;
+      document.getElementById('progress-fill').style.width = total ? (done/total*100) + '%' : '0%';
+    }
+    function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function renderTasks() {
+      const list = document.getElementById('task-list');
+      const empty = document.getElementById('empty-state');
+      list.innerHTML = '';
+      if (!tasks.length) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      tasks.forEach((t, i) => {
+        const el = document.createElement('div');
+        el.className = 'task-item' + (t.done ? ' done' : '');
+        el.innerHTML = '<div class="checkbox ' + (t.done?'checked':'') + '" onclick="toggleTask(' + i + ')"></div><span class="task-text">' + escHtml(t.text) + '</span><span class="task-priority priority-' + (t.priority||'med') + '">' + (t.priority||'med').toUpperCase() + '</span><button class="delete-btn" onclick="deleteTask(' + i + ')">&#215;</button>';
+        list.appendChild(el);
+      });
+      updateProgress();
+    }
+    function addTask() {
+      const input = document.getElementById('task-input');
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.unshift({ text, done: false, priority: document.getElementById('priority-select').value, id: Date.now() });
+      saveTasks(); renderTasks(); input.value = '';
+    }
+    function handleTaskKey(e) { if (e.key === 'Enter') addTask(); }
+    function toggleTask(i) { tasks[i].done = !tasks[i].done; saveTasks(); renderTasks(); }
+    function deleteTask(i) { tasks.splice(i, 1); saveTasks(); renderTasks(); }
+    function clearDone() { tasks = tasks.filter(t => !t.done); saveTasks(); renderTasks(); }
+    function focusAdd() { document.getElementById('task-input').focus(); }
+    function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+    function handleAIKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+    function sendQuick(text) { document.getElementById('ai-input').value = text; sendMessage(); }
+    function appendMessage(role, text) {
+      const c = document.getElementById('ai-messages');
+      const el = document.createElement('div');
+      el.className = 'message ' + role;
+      el.textContent = text;
+      c.appendChild(el); c.scrollTop = c.scrollHeight;
+    }
+    function showTyping() {
+      const c = document.getElementById('ai-messages');
+      const el = document.createElement('div');
+      el.className = 'message assistant typing'; el.id = 'typing-indicator';
+      el.innerHTML = '<span></span><span></span><span></span>';
+      c.appendChild(el); c.scrollTop = c.scrollHeight;
+    }
+    function removeTyping() { const el = document.getElementById('typing-indicator'); if (el) el.remove(); }
+    function getTaskSummary() {
+      if (!tasks.length) return 'No tasks yet.';
+      return 'Tasks: ' + tasks.map(t => '"' + t.text + '" [' + t.priority + (t.done?' - done':'') + ']').join(', ');
+    }
+    async function sendMessage() {
+      if (isLoading) return;
+      const input = document.getElementById('ai-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = ''; input.style.height = 'auto';
+      appendMessage('user', text);
+      chatHistory.push({ role: 'user', content: text });
+      isLoading = true; document.getElementById('send-btn').disabled = true;
+      showTyping();
+      try {
+        const res = await fetch('/api/claude', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: chatHistory, system: 'You are a helpful productivity assistant. ' + getTaskSummary() + ' Today is ' + new Date().toDateString() + '. Be concise and actionable.' })
+        });
+        const data = await res.json();
+        removeTyping();
+        const reply = data.content || data.error || 'Something went wrong.';
+        appendMessage('assistant', reply);
+        chatHistory.push({ role: 'assistant', content: reply });
+      } catch(e) {
+        removeTyping();
+        appendMessage('assistant', 'Could not connect. Check your ANTHROPIC_API_KEY.');
+      }
+      isLoading = false; document.getElementById('send-btn').disabled = false;
+    }
+    initHeader(); renderTasks();
+  </script>
+</body>
+</html>
