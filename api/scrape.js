@@ -1,7 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic();
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -14,22 +10,18 @@ export default async function handler(req, res) {
   });
 
   const queryContext = query && query !== "all events"
-    ? `The user searched for: "${query}". Focus on events matching this query, but also include related events.`
+    ? `The user searched for: "${query}". Focus on events matching this query but include related events too.`
     : `Return a broad mix of all event types happening today.`;
 
-  try {
-    const response = await client.messages.create({
-      model: "claude-opus-4-5",
-      max_tokens: 8000,
-      system: `You are an expert local events researcher for ${city}, Canada. Generate a comprehensive, realistic list of events happening in ${city} today based on your deep knowledge of the city's venues, regular programming, seasonal events, and neighbourhood culture.
+  const prompt = `You are an expert local events researcher for ${city}, Canada. Generate a realistic list of events happening in ${city} today based on your knowledge of real venues, neighbourhoods, and event culture.
 
-Use REAL venue names, REAL neighbourhoods, and event types that genuinely exist in ${city}. Make events feel authentic and specific to the city.
+Use REAL venue names and REAL neighbourhoods from ${city}:
+Neighbourhoods: Kensington, Inglewood, Beltline, Mission, Bridgeland, Eau Claire, East Village, Marda Loop, Hillhurst, Sunnyside, 17th Ave SW, 4th Street SW
+Venues: The Palace Theatre, Commonwealth Bar, Arts Commons, Glenbow Museum, National Music Centre, Studio Bell, Calgary Farmers Market, Crossroads Market, Olympic Plaza, Prince's Island Park, The Ironwood Stage, Broken City, Palomino Smokehouse, The Ship & Anchor, TELUS Spark Science Centre
 
-${city} neighbourhoods to use: Kensington, Inglewood, Beltline, Mission, Bridgeland, Eau Claire, East Village, Marda Loop, Hillhurst, Sunnyside, Chinatown, 17th Ave SW, 4th Street SW, Stampede Park area, NW Calgary, NE Calgary.
+${queryContext}
 
-Real ${city} venues to reference: The Palace Theatre, Commonwealth Bar, Music Mile venues, Arts Commons, Glenbow Museum, National Music Centre, Studio Bell, Calgary Farmers Market, Crossroads Market, Olympic Plaza, Prince's Island Park, Bow River pathways, Eau Claire Market area, TELUS Spark, The Ironwood Stage, Broken City, Commonwealth, Palomino Smokehouse, Analog Bar, The Ship & Anchor, Raw Bar, Catch & The Oyster Bar.
-
-You MUST respond with ONLY valid JSON in this exact format:
+Respond with ONLY valid JSON in this exact format, no other text:
 {
   "events": [
     {
@@ -38,7 +30,6 @@ You MUST respond with ONLY valid JSON in this exact format:
       "description": "One to two sentence description.",
       "venue": "Venue Name",
       "neighbourhood": "Neighbourhood",
-      "area": "Area",
       "date": "Today",
       "time": "8:00 PM",
       "price": "Free",
@@ -50,20 +41,41 @@ You MUST respond with ONLY valid JSON in this exact format:
 }
 
 category must be one of: music, food, arts, sports, fitness, community, nightlife, film, markets, outdoor
-price: "Free", "$10", "$25–$40", etc.
-Generate 16–22 events.`,
-      messages: [{
-        role: "user",
-        content: `Find events in ${city} for ${dayName}. ${queryContext} Return ONLY the JSON, no other text.`
-      }]
+price: "Free", "$10", "$25-$40", etc.
+Generate 16-20 diverse, specific, realistic events for ${city} on ${dayName}.`;
+
+  try {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 6000
+      })
     });
 
-    const text = response.content[0].text.trim();
-    const jsonMatch = text.match(/{[sS]*}/);
-    if (!jsonMatch) throw new Error("Invalid response format");
+    if (!groqRes.ok) {
+      const errText = await groqRes.text();
+      throw new Error(`Groq API error: ${groqRes.status} ${errText}`);
+    }
+
+    const groqData = await groqRes.json();
+    const text = groqData.choices?.[0]?.message?.content?.trim();
+
+    if (!text) throw new Error("Empty response from Groq");
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found in response");
 
     const parsed = JSON.parse(jsonMatch[0]);
-    if (!parsed.events || !Array.isArray(parsed.events)) throw new Error("No events in response");
+    if (!parsed.events || !Array.isArray(parsed.events)) throw new Error("No events array in response");
 
     return res.status(200).json({
       events: parsed.events,
