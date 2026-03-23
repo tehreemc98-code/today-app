@@ -3,6 +3,444 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>today. — Calgary Events</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-dark: #1e2f1a;
+      --green-mid: #2a3f24;
+      --green-card: #28391f;
+      --green-hover: #324a27;
+      --cream: #f0ede6;
+      --cream2: #e8e4db;
+      --text-dark: #1a2410;
+      --text-muted: #6b7c5e;
+      --text-light: rgba(255,255,255,0.55);
+      --white: #ffffff;
+      --tag-bg: #e8eedf;
+      --tag-text: #3a4f2d;
+      --price-green: #2d6a2a;
+    }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--green-dark);
+      color: var(--white);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--green-dark);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .nav-logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; color: var(--white); }
+    .nav-logo span { opacity: 0.5; }
+    .view-toggle {
+      display: flex; gap: 2px;
+      background: var(--green-mid);
+      border-radius: 10px; padding: 4px;
+    }
+    .view-btn {
+      padding: 6px 14px; border-radius: 7px; border: none;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      color: rgba(255,255,255,0.5); background: transparent;
+      transition: all 0.15s;
+    }
+    .view-btn.active { background: var(--cream); color: var(--text-dark); }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 56px 24px 40px;
+    }
+    .hero-eyebrow {
+      font-size: 12px; font-weight: 500; letter-spacing: 0.18em;
+      color: var(--text-light); margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    .hero-title {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: clamp(72px, 18vw, 120px);
+      font-weight: 400; line-height: 0.9;
+      color: var(--white); letter-spacing: -2px;
+      margin-bottom: 24px;
+    }
+    .hero-title span { color: rgba(255,255,255,0.4); }
+    .hero-sub {
+      font-size: 16px; color: var(--text-light);
+      max-width: 420px; margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+    .hero-sub strong { color: rgba(255,255,255,0.85); font-weight: 600; }
+    .scrape-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 18px 36px; border-radius: 16px; border: none;
+      background: #2d4a20; color: var(--white);
+      font-size: 17px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; letter-spacing: -0.2px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .scrape-btn:hover { background: #364f27; transform: translateY(-1px); }
+    .scrape-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .sources-list {
+      margin-top: 20px; font-size: 13px;
+      color: var(--text-light); line-height: 1.9;
+      max-width: 480px; margin: 20px auto 0;
+    }
+
+    /* FILTER BAR */
+    .filter-bar {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding: 0 20px 20px; scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      padding: 7px 16px; border-radius: 20px; border: none;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      white-space: nowrap; transition: all 0.15s;
+      background: var(--green-mid); color: rgba(255,255,255,0.6);
+    }
+    .filter-chip.active { background: var(--cream); color: var(--text-dark); }
+    .filter-chip:hover:not(.active) { background: var(--green-hover); color: rgba(255,255,255,0.85); }
+
+    /* RESULTS */
+    .results-header {
+      padding: 0 20px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .results-count { font-size: 13px; color: var(--text-light); }
+
+    /* GRID VIEW */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px; padding: 0 20px 40px;
+    }
+    .events-grid.list-view {
+      grid-template-columns: 1fr;
+      max-width: 680px; margin: 0 auto;
+    }
+
+    /* EVENT CARD */
+    .event-card {
+      background: var(--cream);
+      border-radius: 20px; overflow: hidden;
+      color: var(--text-dark);
+      border: 1.5px solid rgba(255,255,255,0.06);
+      transition: transform 0.15s;
+    }
+    .event-card:hover { transform: translateY(-2px); }
+    .card-top {
+      padding: 18px 18px 12px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .card-category {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .cat-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--cream2); display: flex;
+      align-items: center; justify-content: center; font-size: 18px;
+      flex-shrink: 0;
+    }
+    .cat-info {}
+    .cat-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .cat-location { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .card-badges { display: flex; gap: 6px; align-items: center; }
+    .badge-hot {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--cream2); display: flex;
+      align-items: center; justify-content: center; font-size: 15px;
+    }
+    .badge-curated {
+      padding: 4px 10px; border-radius: 20px;
+      background: var(--cream2); font-size: 11px;
+      font-weight: 600; color: var(--text-dark);
+    }
+    .card-body { padding: 4px 18px 16px; }
+    .event-name {
+      font-size: 20px; font-weight: 700; line-height: 1.2;
+      color: var(--text-dark); margin-bottom: 8px; letter-spacing: -0.3px;
+    }
+    .event-desc {
+      font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;
+    }
+    .event-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tag {
+      padding: 4px 12px; border-radius: 20px;
+      background: var(--tag-bg); color: var(--tag-text);
+      font-size: 12px; font-weight: 500;
+    }
+    .card-footer {
+      border-top: 1px solid var(--cream2);
+      padding: 12px 18px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .event-location-row { }
+    .event-venue { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+    .event-time { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .event-price {
+      font-size: 16px; font-weight: 700;
+      color: var(--price-green);
+    }
+    .event-price.paid { color: var(--text-dark); }
+
+    /* LOADING */
+    .loading-state {
+      text-align: center; padding: 60px 24px;
+      color: var(--text-light);
+    }
+    .spinner {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: rgba(255,255,255,0.5);
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-sources {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center; margin-top: 20px;
+    }
+    .source-chip {
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 500;
+      background: var(--green-mid); color: var(--text-light);
+      transition: all 0.3s;
+    }
+    .source-chip.done { background: #2d4a20; color: rgba(255,255,255,0.8); }
+
+    /* EMPTY */
+    .empty-state {
+      text-align: center; padding: 80px 24px;
+      color: var(--text-light);
+    }
+    .empty-emoji { font-size: 48px; margin-bottom: 16px; }
+
+    /* ERROR */
+    .error-banner {
+      margin: 0 20px 20px;
+      padding: 14px 18px; border-radius: 12px;
+      background: rgba(200,60,60,0.15);
+      border: 1px solid rgba(200,60,60,0.3);
+      color: #ffaaaa; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-logo">today<span>.</span></div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-grid" onclick="setView('grid')">⊞ Grid</button>
+      <button class="view-btn" id="btn-list" onclick="setView('list')">≡ List</button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Calgary &nbsp;·&nbsp; Live Events</div>
+    <div class="hero-title">today<span>.</span></div>
+    <div class="hero-sub">
+      Everything happening in your city —<br>
+      scraped live from <strong>12 sources</strong> simultaneously.
+    </div>
+    <button class="scrape-btn" id="scrape-btn" onclick="scrapeEvents()">
+      ⚡ Scrape All Sources — Calgary
+    </button>
+    <div class="sources-list" id="sources-list">
+      Ticketmaster · Eventbrite · Meetup · Lu.ma · Tourism Board ·<br>
+      Facebook Events · Instagram · ClassPass · Reddit · Live Music<br>
+      venues · Arts &amp; Culture · Food &amp; Markets · Outdoor &amp; Sports · Free<br>
+      Community Events
+    </div>
+  </div>
+
+  <div id="filter-bar" class="filter-bar" style="display:none">
+    <button class="filter-chip active" onclick="filterEvents('all', this)">All</button>
+    <button class="filter-chip" onclick="filterEvents('music', this)">🎵 Music</button>
+    <button class="filter-chip" onclick="filterEvents('food', this)">🍽️ Food & Drink</button>
+    <button class="filter-chip" onclick="filterEvents('arts', this)">🎨 Arts & Culture</button>
+    <button class="filter-chip" onclick="filterEvents('sports', this)">⚽ Sports & Outdoor</button>
+    <button class="filter-chip" onclick="filterEvents('fitness', this)">💪 Fitness</button>
+    <button class="filter-chip" onclick="filterEvents('community', this)">🤝 Community</button>
+    <button class="filter-chip" onclick="filterEvents('free', this)">✨ Free</button>
+  </div>
+
+  <div id="results-header" class="results-header" style="display:none">
+    <span class="results-count" id="results-count"></span>
+    <button class="scrape-btn" style="padding:8px 16px;font-size:13px;border-radius:10px" onclick="scrapeEvents()">⚡ Refresh</button>
+  </div>
+
+  <div id="error-banner" class="error-banner" style="display:none"></div>
+
+  <div id="events-container" class="events-grid"></div>
+
+<script>
+  let allEvents = [];
+  let currentView = 'grid';
+  let currentFilter = 'all';
+
+  function setView(v) {
+    currentView = v;
+    document.getElementById('btn-grid').classList.toggle('active', v === 'grid');
+    document.getElementById('btn-list').classList.toggle('active', v === 'list');
+    const container = document.getElementById('events-container');
+    container.classList.toggle('list-view', v === 'list');
+  }
+
+  function filterEvents(cat, btn) {
+    currentFilter = cat;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderEvents();
+  }
+
+  const CAT_ICONS = {
+    music: '🎵', food: '🍽️', arts: '🎨', sports: '⚽',
+    fitness: '💪', community: '🤝', nightlife: '🌙',
+    film: '🎬', markets: '🛍️', outdoor: '🏔️', default: '⚡'
+  };
+
+  function getCatIcon(cat) {
+    return CAT_ICONS[cat?.toLowerCase()] || CAT_ICONS.default;
+  }
+
+  function renderEvents() {
+    const container = document.getElementById('events-container');
+    let events = allEvents;
+    if (currentFilter !== 'all') {
+      events = allEvents.filter(e => {
+        const cat = (e.category || '').toLowerCase();
+        const tags = (e.tags || []).join(' ').toLowerCase();
+        const name = (e.name || '').toLowerCase();
+        if (currentFilter === 'free') return (e.price || '').toLowerCase() === 'free' || (e.price || '') === '0';
+        return cat.includes(currentFilter) || tags.includes(currentFilter) || name.includes(currentFilter);
+      });
+    }
+
+    document.getElementById('results-count').textContent = events.length + ' events found today';
+
+    if (events.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-emoji">🔍</div><p>No events found for this filter.</p></div>';
+      return;
+    }
+
+    container.innerHTML = events.map((e, i) => {
+      const icon = getCatIcon(e.category);
+      const tags = (e.tags || []).slice(0,3).map(t => '<span class="tag">#' + t + '</span>').join('');
+      const isHot = e.hot || i < 3;
+      const isCurated = e.curated;
+      const priceClass = (!e.price || e.price.toLowerCase() === 'free' || e.price === '0') ? '' : 'paid';
+      const priceLabel = (!e.price || e.price.toLowerCase() === 'free' || e.price === '0') ? 'Free' : e.price;
+      return `
+        <div class="event-card">
+          <div class="card-top">
+            <div class="card-category">
+              <div class="cat-icon">${icon}</div>
+              <div class="cat-info">
+                <div class="cat-label">${e.category || 'Event'}</div>
+                <div class="cat-location">${e.neighbourhood || e.area || 'Calgary'}</div>
+              </div>
+            </div>
+            <div class="card-badges">
+              ${isHot ? '<div class="badge-hot">🔥</div>' : ''}
+              ${isCurated ? '<div class="badge-curated">⭐ Curated</div>' : ''}
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="event-name">${e.name}</div>
+            <div class="event-desc">${e.description || ''}</div>
+            ${tags ? '<div class="event-tags">' + tags + '</div>' : ''}
+          </div>
+          <div class="card-footer">
+            <div class="event-location-row">
+              <div class="event-venue">${e.venue || e.location || ''}</div>
+              <div class="event-time">${e.date || 'Today'} · ${e.time || ''}</div>
+            </div>
+            <div class="event-price ${priceClass}">${priceLabel}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function scrapeEvents() {
+    const btn = document.getElementById('scrape-btn');
+    const container = document.getElementById('events-container');
+    const filterBar = document.getElementById('filter-bar');
+    const resultsHeader = document.getElementById('results-header');
+    const errorBanner = document.getElementById('error-banner');
+    const sourcesList = document.getElementById('sources-list');
+
+    errorBanner.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '⚡ Scraping...';
+    sourcesList.style.display = 'none';
+    filterBar.style.display = 'none';
+    resultsHeader.style.display = 'none';
+
+    const sources = ['Ticketmaster','Eventbrite','Meetup','Lu.ma','Tourism YYC','Facebook Events','ClassPass','Reddit','Live Music Venues','Arts & Culture','Food & Markets','Community Events'];
+    container.innerHTML = `
+      <div class="loading-state" style="grid-column:1/-1">
+        <div class="spinner"></div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px">Scraping 12 sources simultaneously...</div>
+        <div style="font-size:13px;margin-bottom:20px">Finding everything happening in Calgary today</div>
+        <div class="loading-sources">
+          ${sources.map(s => '<div class="source-chip" id="src-' + s.replace(/[^a-z]/gi,'') + '">' + s + '</div>').join('')}
+        </div>
+      </div>`;
+
+    // Animate source chips lighting up
+    let delay = 0;
+    for (const s of sources) {
+      setTimeout(() => {
+        const el = document.getElementById('src-' + s.replace(/[^a-z]/gi,''));
+        if (el) el.classList.add('done');
+      }, delay);
+      delay += 180;
+    }
+
+    try {
+      const res = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city: 'Calgary', date: new Date().toISOString().split('T')[0] })
+      });
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      allEvents = data.events || [];
+      filterBar.style.display = 'flex';
+      resultsHeader.style.display = 'flex';
+      currentFilter = 'all';
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('.filter-chip').classList.add('active');
+      renderEvents();
+    } catch(err) {
+      errorBanner.textContent = '⚠️ ' + (err.message || 'Failed to scrape events. Please try again.');
+      errorBanner.style.display = 'block';
+      container.innerHTML = '<div class="empty-state"><div class="empty-emoji">😔</div><p>Something went wrong. Try again!</p></div>';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Scrape All Sources — Calgary';
+  }
+</script>
+</body>
+</html>!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Today</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
