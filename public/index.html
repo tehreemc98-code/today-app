@@ -1,90 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>today. — Calgary Events</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --green-dark: #1e2f1a; --green-mid: #253d1f; --green-card: #28391f; --green-hover: #2f4a27; --cream: #f0ede6; --cream2: #e4e0d8; --text-dark: #1a2410; --text-muted: #6b7c5e; --text-light: rgba(255,255,255,0.5); --tag-bg: #e4ecd8; --tag-text: #3a5030; --price-green: #2a6627; }
-    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--green-dark); color: #fff; min-height: 100vh; }
-    nav { position: sticky; top: 0; z-index: 100; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; background: var(--green-dark); border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .nav-logo { font-family: 'Instrument Serif', Georgia, serif; font-size: 22px; font-weight: 400; color: #fff; letter-spacing: -0.5px; }
-    .nav-logo span { opacity: 0.35; }
-    .view-toggle { display: flex; gap: 2px; background: rgba(255,255,255,0.07); border-radius: 10px; padding: 3px; }
-    .view-btn { padding: 6px 14px; border-radius: 7px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; color: rgba(255,255,255,0.45); background: transparent; transition: all 0.15s; font-family: inherit; }
-    .view-btn.active { background: var(--cream); color: var(--text-dark); }
-    .hero { text-align: center; padding: 60px 24px 44px; }
-    .hero-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-light); margin-bottom: 18px; }
-    .hero-title { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(80px, 20vw, 130px); font-weight: 400; line-height: 0.88; color: #fff; letter-spacing: -3px; margin-bottom: 22px; }
-    .hero-title span { color: rgba(255,255,255,0.3); }
-    .hero-sub { font-size: 15px; color: var(--text-light); max-width: 360px; margin: 0 auto 36px; line-height: 1.65; }
-    .hero-sub strong { color: rgba(255,255,255,0.8); font-weight: 600; }
-    .search-wrap { max-width: 560px; margin: 0 auto; position: relative; }
-    .search-bar { width: 100%; padding: 18px 60px 18px 24px; border-radius: 16px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 16px; font-family: inherit; outline: none; backdrop-filter: blur(10px); border: 1.5px solid rgba(255,255,255,0.12); transition: all 0.2s; }
-    .search-bar::placeholder { color: rgba(255,255,255,0.35); }
-    .search-bar:focus { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.25); }
-    .search-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 10px; border: none; background: #3a5c2e; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
-    .search-btn:hover { background: #456b37; }
-    .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .search-suggestions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
-    .suggestion { padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit; border: none; }
-    .suggestion:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); }
-    .date-filter-bar { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; padding: 20px 24px 0; }
-    .date-chip { padding: 7px 18px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.15); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.15s; font-family: inherit; background: transparent; color: rgba(255,255,255,0.6); }
-    .date-chip.active { background: var(--cream); color: var(--text-dark); border-color: var(--cream); }
-    .date-chip:hover:not(.active) { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
-    .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 16px 24px 20px; scrollbar-width: none; }
-    .filter-bar::-webkit-scrollbar { display: none; }
-    .filter-chip { padding: 7px 16px; border-radius: 20px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.15s; font-family: inherit; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); }
-    .filter-chip.active { background: var(--cream); color: var(--text-dark); }
-    .filter-chip:hover:not(.active) { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); }
-    .results-header { padding: 0 24px 14px; display: flex; align-items: center; justify-content: space-between; }
-    .results-count { font-size: 13px; color: var(--text-light); }
-    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; padding: 0 24px 60px; }
-    .events-grid.list-view { grid-template-columns: 1fr; max-width: 660px; margin: 0 auto; }
-    .event-card { background: var(--cream); border-radius: 20px; overflow: hidden; color: var(--text-dark); transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; text-decoration: none; display: block; }
-    .event-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
-    .card-top { padding: 16px 16px 10px; display: flex; align-items: flex-start; justify-content: space-between; }
-    .card-category { display: flex; align-items: center; gap: 10px; }
-    .cat-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--cream2); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
-    .cat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-    .cat-location { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-    .card-badges { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
-    .badge-hot { width: 30px; height: 30px; border-radius: 50%; background: var(--cream2); display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .card-body { padding: 2px 16px 14px; }
-    .event-name { font-size: 19px; font-weight: 700; line-height: 1.2; letter-spacing: -0.3px; margin-bottom: 7px; }
-    .event-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
-    .event-tags { display: flex; gap: 5px; flex-wrap: wrap; }
-    .tag { padding: 3px 10px; border-radius: 20px; background: var(--tag-bg); color: var(--tag-text); font-size: 11px; font-weight: 500; }
-    .card-footer { border-top: 1px solid var(--cream2); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
-    .event-venue { font-size: 13px; font-weight: 600; }
-    .event-time { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-    .event-link-hint { font-size: 10px; color: #5a7a4a; margin-top: 2px; font-weight: 500; }
-    .event-price { font-size: 15px; font-weight: 700; color: var(--price-green); }
-    .event-price.paid { color: var(--text-dark); }
-    .loading-state { grid-column: 1/-1; text-align: center; padding: 60px 24px; }
-    .spinner { width: 36px; height: 36px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); border-top-color: rgba(255,255,255,0.6); animation: spin 0.7s linear infinite; margin: 0 auto 18px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-    .loading-sub { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
-    .source-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
-    .source-chip { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); transition: all 0.4s; }
-    .source-chip.done { background: rgba(80,140,50,0.3); color: rgba(180,230,140,0.9); }
-    .empty-state { grid-column: 1/-1; text-align: center; padding: 80px 24px; color: var(--text-light); }
-    .empty-emoji { font-size: 44px; margin-bottom: 14px; }
-    .empty-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; color: rgba(255,255,255,0.7); }
-    .empty-sub { font-size: 14px; }
-    .error-msg { grid-column: 1/-1; margin: 0 0 16px; padding: 14px 18px; border-radius: 12px; background: rgba(200,50,50,0.15); border: 1px solid rgba(200,50,50,0.25); color: #ffaaaa; font-size: 14px; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>today. — Calgary Events</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green-dark:#1e2f1a;--green-mid:#253d1f;--green-card:#28391f;--green-hover:#2f4a27;--cream:#f0ede6;--cream2:#e4e0d8;--text-dark:#1a2410;--text-muted:#6b7c5e;--text-light:rgba(255,255,255,0.5);--tag-bg:#e4ecd8;--tag-text:#3a5030;--price-green:#2a6627}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--green-dark);color:#fff;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;background:var(--green-dark);border-bottom:1px solid rgba(255,255,255,0.06)}
+.nav-logo{font-family:'Instrument Serif',Georgia,serif;font-size:22px;font-weight:400;color:#fff;letter-spacing:-0.5px}
+.nav-logo span{opacity:.35}
+.nav-right{display:flex;gap:6px;align-items:center}
+.view-toggle{display:flex;gap:2px;background:rgba(255,255,255,0.07);border-radius:10px;padding:3px}
+.view-btn{padding:6px 14px;border-radius:7px;border:none;font-size:13px;font-weight:500;cursor:pointer;color:rgba(255,255,255,0.45);background:transparent;transition:all .15s;font-family:inherit}
+.view-btn.active{background:var(--cream);color:var(--text-dark)}
+.map-btn{padding:6px 14px;border-radius:7px;border:none;font-size:13px;font-weight:500;cursor:pointer;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.07);transition:all .15s;font-family:inherit;white-space:nowrap}
+.map-btn.active{background:#3a5c2e;color:#fff}
+.hero{text-align:center;padding:60px 24px 44px}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--text-light);margin-bottom:18px}
+.hero-title{font-family:'Instrument Serif',Georgia,serif;font-size:clamp(80px,20vw,130px);font-weight:400;line-height:.88;color:#fff;letter-spacing:-3px;margin-bottom:22px}
+.hero-title span{color:rgba(255,255,255,0.3)}
+.hero-sub{font-size:15px;color:var(--text-light);max-width:360px;margin:0 auto 36px;line-height:1.65}
+.hero-sub strong{color:rgba(255,255,255,0.8);font-weight:600}
+.search-wrap{max-width:560px;margin:0 auto;position:relative}
+.search-bar{width:100%;padding:18px 60px 18px 24px;border-radius:16px;background:rgba(255,255,255,0.1);color:#fff;font-size:16px;font-family:inherit;outline:none;backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,0.12);transition:all .2s}
+.search-bar::placeholder{color:rgba(255,255,255,0.35)}
+.search-bar:focus{background:rgba(255,255,255,0.13);border-color:rgba(255,255,255,0.25)}
+.search-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:10px;border:none;background:#3a5c2e;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.search-btn:hover{background:#456b37}
+.search-btn:disabled{opacity:.5;cursor:not-allowed}
+.search-suggestions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.suggestion{padding:6px 14px;border-radius:20px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.55);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;border:none}
+.suggestion:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85)}
+.location-row{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.hood-select{padding:10px 16px;border-radius:12px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.15);color:#fff;font-size:13px;font-family:inherit;cursor:pointer;outline:none;flex:1;min-width:180px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(255,255,255,0.5)' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.hood-select:focus{border-color:rgba(255,255,255,0.35)}
+.hood-select option{background:#253d1f;color:#fff}
+.postal-input{padding:10px 16px;border-radius:12px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.15);color:#fff;font-size:13px;font-family:inherit;outline:none;width:120px;text-transform:uppercase}
+.postal-input::placeholder{color:rgba(255,255,255,0.35);text-transform:none}
+.postal-input:focus{border-color:rgba(255,255,255,0.35)}
+.clear-hood-btn{padding:10px 14px;border-radius:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:12px;font-family:inherit;cursor:pointer;white-space:nowrap;display:none}
+.clear-hood-btn.visible{display:block}
+.date-filter-bar{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:16px 24px 0}
+.date-chip{padding:7px 18px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.15);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;background:transparent;color:rgba(255,255,255,0.6)}
+.date-chip.active{background:var(--cream);color:var(--text-dark);border-color:var(--cream)}
+.date-chip:hover:not(.active){background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9)}
+.filter-bar{display:flex;gap:8px;overflow-x:auto;padding:16px 24px 20px;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{padding:7px 16px;border-radius:20px;border:none;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.55)}
+.filter-chip.active{background:var(--cream);color:var(--text-dark)}
+.filter-chip:hover:not(.active){background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85)}
+.results-header{padding:0 24px 14px;display:flex;align-items:center;gap:12px}
+.results-count{font-size:13px;color:var(--text-light);flex:1}
+.hood-badge{padding:4px 12px;border-radius:20px;background:rgba(58,92,46,0.6);border:1px solid rgba(80,140,50,0.4);color:rgba(180,230,140,0.9);font-size:11px;font-weight:600;display:none}
+.hood-badge.visible{display:inline-block}
+#map-container{display:none;height:520px;margin:0 24px 24px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)}
+#map-container.visible{display:block}
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:0 24px 60px}
+.events-grid.list-view{grid-template-columns:1fr;max-width:660px;margin:0 auto}
+.event-card{background:var(--cream);border-radius:20px;overflow:hidden;color:var(--text-dark);transition:transform .15s,box-shadow .15s;cursor:pointer;text-decoration:none;display:block}
+.event-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.25)}
+.card-top{padding:16px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between}
+.card-category{display:flex;align-items:center;gap:10px}
+.cat-icon{width:38px;height:38px;border-radius:9px;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.cat-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+.cat-location{font-size:11px;color:var(--text-muted);margin-top:2px}
+.card-badges{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.badge-hot{width:30px;height:30px;border-radius:50%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:14px}
+.card-body{padding:2px 16px 14px}
+.event-name{font-size:19px;font-weight:700;line-height:1.2;letter-spacing:-.3px;margin-bottom:7px}
+.event-desc{font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:10px}
+.event-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{padding:3px 10px;border-radius:20px;background:var(--tag-bg);color:var(--tag-text);font-size:11px;font-weight:500}
+.card-footer{border-top:1px solid var(--cream2);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+.event-venue{font-size:13px;font-weight:600}
+.event-time{font-size:11px;color:var(--text-muted);margin-top:1px}
+.event-link-hint{font-size:10px;color:#5a7a4a;margin-top:2px;font-weight:500}
+.event-price{font-size:15px;font-weight:700;color:var(--price-green)}
+.event-price.paid{color:var(--text-dark)}
+.loading-state{grid-column:1/-1;text-align:center;padding:60px 24px}
+.spinner{width:36px;height:36px;border-radius:50%;border:3px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.6);animation:spin .7s linear infinite;margin:0 auto 18px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:16px;font-weight:600;margin-bottom:6px}
+.loading-sub{font-size:13px;color:var(--text-light);margin-bottom:20px}
+.source-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.source-chip{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);transition:all .4s}
+.source-chip.done{background:rgba(80,140,50,0.3);color:rgba(180,230,140,0.9)}
+.empty-state{grid-column:1/-1;text-align:center;padding:80px 24px;color:var(--text-light)}
+.empty-emoji{font-size:44px;margin-bottom:14px}
+.empty-title{font-size:17px;font-weight:600;margin-bottom:6px;color:rgba(255,255,255,0.7)}
+.empty-sub{font-size:14px}
+.error-msg{grid-column:1/-1;margin:0 0 16px;padding:14px 18px;border-radius:12px;background:rgba(200,50,50,0.15);border:1px solid rgba(200,50,50,0.25);color:#ffaaaa;font-size:14px}
+.leaflet-popup-content-wrapper{border-radius:12px;font-family:'Inter',sans-serif}
+.map-popup{font-family:'Inter',sans-serif;min-width:180px}
+.map-popup h4{font-size:13px;font-weight:700;margin-bottom:4px;color:#1a2410}
+.map-popup p{font-size:11px;color:#6b7c5e;margin-bottom:4px}
+.map-popup a{font-size:11px;color:#3a5c2e;font-weight:600;text-decoration:none}
+</style>
 </head>
 <body>
 <nav>
   <div class="nav-logo">today<span>.</span></div>
-  <div class="view-toggle">
-    <button class="view-btn active" id="btn-grid" onclick="setView('grid')">&#x229E; Grid</button>
-    <button class="view-btn" id="btn-list" onclick="setView('list')">&#x2261; List</button>
+  <div class="nav-right">
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-grid" onclick="setView('grid')">&#x229E; Grid</button>
+      <button class="view-btn" id="btn-list" onclick="setView('list')">&#x2261; List</button>
+    </div>
+    <button class="map-btn" id="btn-map" onclick="toggleMap()">&#x1F5FA; Map</button>
   </div>
 </nav>
 <div id="hero" class="hero">
@@ -92,7 +118,7 @@
   <div class="hero-title">today<span>.</span></div>
   <div class="hero-sub">Everything happening in your city,<br>found <strong>live</strong> across Calgary.</div>
   <div class="search-wrap">
-    <input id="search-input" class="search-bar" type="text" placeholder="Search events, venues, neighbourhoods..." onkeydown="handleKey(event)" autocomplete="off" />
+    <input id="search-input" class="search-bar" type="text" placeholder="Search events, venues, neighbourhoods..." onkeydown="handleKey(event)" autocomplete="off"/>
     <button class="search-btn" id="search-btn" onclick="doSearch()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
@@ -103,6 +129,60 @@
     <button class="suggestion" onclick="quickSearch('food and markets')">&#127869;&#65039; Food &amp; markets</button>
     <button class="suggestion" onclick="quickSearch('outdoor activities')">&#127956;&#65039; Outdoor</button>
     <button class="suggestion" onclick="quickSearch('arts and culture')">&#127912; Arts &amp; culture</button>
+  </div>
+  <div class="location-row">
+    <select class="hood-select" id="hood-select" onchange="onHoodChange()">
+      <option value="">&#x1F4CD; All neighbourhoods</option>
+      <optgroup label="Inner City / NW">
+        <option value="Kensington|T2N|51.0530|-114.0850">Kensington (T2N)</option>
+        <option value="Hillhurst|T2N|51.0530|-114.0990">Hillhurst (T2N)</option>
+        <option value="Sunnyside|T2N|51.0580|-114.0880">Sunnyside (T2N)</option>
+        <option value="Crescent Heights|T2M|51.0620|-114.0760">Crescent Heights (T2M)</option>
+        <option value="Mount Pleasant|T2M|51.0680|-114.0870">Mount Pleasant (T2M)</option>
+        <option value="Tuxedo Park|T2M|51.0680|-114.0760">Tuxedo Park (T2M)</option>
+        <option value="Bowness|T3B|51.0880|-114.1850">Bowness (T3B)</option>
+        <option value="Montgomery|T3B|51.0760|-114.1600">Montgomery (T3B)</option>
+        <option value="Varsity|T3A|51.0920|-114.1620">Varsity (T3A)</option>
+        <option value="Silver Springs|T3B|51.1060|-114.1850">Silver Springs (T3B)</option>
+        <option value="Tuscany|T3L|51.1220|-114.2160">Tuscany (T3L)</option>
+      </optgroup>
+      <optgroup label="Downtown / Inner SW">
+        <option value="Downtown Core|T2P|51.0447|-114.0719">Downtown Core (T2P)</option>
+        <option value="Eau Claire|T2P|51.0530|-114.0760">Eau Claire (T2P)</option>
+        <option value="Chinatown|T2P|51.0480|-114.0680">Chinatown (T2P)</option>
+        <option value="Beltline|T2R|51.0392|-114.0850">Beltline (T2R)</option>
+        <option value="Mission|T2S|51.0330|-114.0850">Mission (T2S)</option>
+        <option value="17th Ave SW|T2S|51.0360|-114.0900">17th Ave SW (T2S)</option>
+        <option value="4th Street SW|T2S|51.0360|-114.0780">4th Street SW (T2S)</option>
+        <option value="Altadore|T2T|51.0150|-114.0960">Altadore (T2T)</option>
+        <option value="Marda Loop|T2T|51.0220|-114.0990">Marda Loop (T2T)</option>
+        <option value="Currie Barracks|T3E|51.0250|-114.1350">Currie Barracks (T3E)</option>
+      </optgroup>
+      <optgroup label="Inner East / NE">
+        <option value="Bridgeland|T2E|51.0530|-114.0470">Bridgeland (T2E)</option>
+        <option value="Inglewood|T2G|51.0392|-114.0219">Inglewood (T2G)</option>
+        <option value="East Village|T2G|51.0440|-114.0540">East Village (T2G)</option>
+        <option value="Victoria Park|T2G|51.0370|-114.0620">Victoria Park (T2G)</option>
+        <option value="Ramsay|T2G|51.0310|-114.0350">Ramsay (T2G)</option>
+        <option value="Forest Lawn|T2A|51.0370|-113.9750">Forest Lawn (T2A)</option>
+        <option value="Marlborough|T2A|51.0550|-113.9760">Marlborough (T2A)</option>
+        <option value="Martindale|T3J|51.1050|-113.9640">Martindale (T3J)</option>
+        <option value="Coventry Hills|T3K|51.1630|-114.0290">Coventry Hills (T3K)</option>
+        <option value="Panorama Hills|T3K|51.1560|-114.0620">Panorama Hills (T3K)</option>
+        <option value="Sage Hill|T3R|51.1700|-114.1600">Sage Hill (T3R)</option>
+      </optgroup>
+      <optgroup label="South Calgary">
+        <option value="South Calgary|T2W|50.9760|-114.0990">South Calgary (T2W)</option>
+        <option value="Evergreen|T2Y|50.9450|-114.1150">Evergreen (T2Y)</option>
+        <option value="Shawnessy|T2Y|50.9420|-114.0660">Shawnessy (T2Y)</option>
+        <option value="Legacy|T2X|50.8980|-114.0230">Legacy (T2X)</option>
+        <option value="McKenzie Towne|T2Z|50.9560|-113.9680">McKenzie Towne (T2Z)</option>
+        <option value="Auburn Bay|T3M|50.9380|-113.9510">Auburn Bay (T3M)</option>
+        <option value="Mahogany|T3M|50.9220|-113.9270">Mahogany (T3M)</option>
+      </optgroup>
+    </select>
+    <input class="postal-input" id="postal-input" type="text" maxlength="7" placeholder="T2N 1A1" oninput="onPostalInput()" />
+    <button class="clear-hood-btn" id="clear-hood-btn" onclick="clearLocation()">&#x2715; Clear</button>
   </div>
   <div class="date-filter-bar">
     <button class="date-chip active" onclick="setDate('today',this)">Today</button>
@@ -123,62 +203,178 @@
 </div>
 <div id="results-header" class="results-header" style="display:none">
   <span id="results-count" class="results-count"></span>
+  <span id="hood-badge" class="hood-badge"></span>
 </div>
+<div id="map-container"><div id="map" style="width:100%;height:100%"></div></div>
 <div id="events-grid" class="events-grid"></div>
 <script>
-  let allEvents=[], currentFilter='all', currentView='grid', currentDate='today';
-  const ICONS={music:'🎵',food:'🍽️',arts:'🎨',sports:'⚽',fitness:'💪',community:'🤝',nightlife:'🌙',film:'🎬',markets:'🛍️',outdoor:'🏔️',default:'⚡'};
-  function getDateLabel(k){const n=new Date();if(k==='today')return 'Today';if(k==='tomorrow'){const t=new Date(n);t.setDate(t.getDate()+1);return t.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});}if(k==='weekend')return 'This Weekend';if(k==='week')return 'This Week';return 'Today';}
-  function getDateISO(k){const n=new Date();if(k==='today')return n.toISOString().split('T')[0];if(k==='tomorrow'){const t=new Date(n);t.setDate(t.getDate()+1);return t.toISOString().split('T')[0];}if(k==='weekend'){const d=n.getDay(),diff=d===6?0:(6-d),s=new Date(n);s.setDate(n.getDate()+diff);return s.toISOString().split('T')[0];}if(k==='week'){const m=new Date(n),d=n.getDay();m.setDate(n.getDate()-(d===0?6:d-1));return m.toISOString().split('T')[0];}return n.toISOString().split('T')[0];}
-  function setDate(k,btn){currentDate=k;document.querySelectorAll('.date-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');doSearch();}
-  function setView(v){currentView=v;document.getElementById('btn-grid').classList.toggle('active',v==='grid');document.getElementById('btn-list').classList.toggle('active',v==='list');document.getElementById('events-grid').classList.toggle('list-view',v==='list');}
-  function handleKey(e){if(e.key==='Enter')doSearch();}
-  function quickSearch(q){document.getElementById('search-input').value=q;doSearch();}
-  function filterBy(cat,btn){currentFilter=cat;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderEvents();}
-  function buildEventLink(e){if(e.url&&e.url.startsWith('http'))return e.url;return 'https://www.google.com/search?q='+encodeURIComponent((e.name||'')+' '+(e.venue||'')+' Calgary');}
-  function renderEvents(){
-    const grid=document.getElementById('events-grid');
-    let events=currentFilter==='all'?allEvents:allEvents.filter(e=>{if(currentFilter==='free')return(e.price||'').toLowerCase()==='free';return[(e.category||''),...(e.tags||[]),(e.name||'')].join(' ').toLowerCase().includes(currentFilter);});
-    document.getElementById('results-count').textContent=events.length+' events · '+getDateLabel(currentDate);
-    if(!events.length){grid.innerHTML='<div class="empty-state"><div class="empty-emoji">🔍</div><div class="empty-title">No events for this filter</div><div class="empty-sub">Try a different category</div></div>';return;}
-    grid.innerHTML=events.map((e,i)=>{
-      const icon=ICONS[(e.category||'').toLowerCase()]||ICONS.default;
-      const tags=(e.tags||[]).slice(0,3).map(t=>'<span class="tag">#'+t+'</span>').join('');
-      const isFree=!e.price||e.price.toLowerCase()==='free';
-      const link=buildEventLink(e);
-      const dl=currentDate==='today'?'Today':getDateLabel(currentDate);
-      return '<a class="event-card" href="'+link+'" target="_blank" rel="noopener noreferrer">'+
-        '<div class="card-top"><div class="card-category"><div class="cat-icon">'+icon+'</div><div><div class="cat-label">'+(e.category||'Event')+'</div><div class="cat-location">'+(e.neighbourhood||e.area||'Calgary')+'</div></div></div>'+
-        '<div class="card-badges">'+(i<4||e.hot?'<div class="badge-hot">🔥</div>':'')+'</div></div>'+
-        '<div class="card-body"><div class="event-name">'+e.name+'</div>'+(e.description?'<div class="event-desc">'+e.description+'</div>':'')+(tags?'<div class="event-tags">'+tags+'</div>':'')+'</div>'+
-        '<div class="card-footer"><div><div class="event-venue">'+(e.venue||e.location||'')+'</div><div class="event-time">'+dl+' &middot; '+(e.time||'')+'</div><div class="event-link-hint">↗ View event</div></div>'+
-        '<div class="event-price '+(isFree?'':'paid')+'">'+(isFree?'Free':e.price)+'</div></div></a>';
-    }).join('');
-  }
-  async function doSearch(){
-    const q=document.getElementById('search-input').value.trim()||'all events';
-    const btn=document.getElementById('search-btn');
-    const grid=document.getElementById('events-grid');
-    const filterBar=document.getElementById('filter-bar');
-    const resultsHeader=document.getElementById('results-header');
-    btn.disabled=true;filterBar.style.display='none';resultsHeader.style.display='none';
-    const dl=getDateLabel(currentDate);
-    const sources=['Google Events','Eventbrite','Meetup','Lu.ma','Tourism YYC','Facebook','Ticketmaster','Reddit YYC','Live Nation','Arts Commons','Calgary Parks','Community Board'];
-    grid.innerHTML='<div class="loading-state"><div class="spinner"></div><div class="loading-title">Finding events for '+dl+'...</div><div class="loading-sub">Checking live sources for "'+q+'" in Calgary</div><div class="source-chips">'+sources.map(s=>'<div class="source-chip" id="sc-'+s.replace(/[^a-z]/gi,'')+'">'+s+'</div>').join('')+'</div></div>';
-    let d=0;for(const s of sources){setTimeout(()=>{const el=document.getElementById('sc-'+s.replace(/[^a-z]/gi,''));if(el)el.classList.add('done');},d);d+=160;}
-    try{
-      const res=await fetch('/api/scrape',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({city:'Calgary',query:q,date:getDateISO(currentDate),dateRange:currentDate})});
-      const data=await res.json();
-      if(data.error)throw new Error(data.error);
-      allEvents=data.events||[];currentFilter='all';
-      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-      document.querySelector('.filter-chip').classList.add('active');
-      filterBar.style.display='flex';resultsHeader.style.display='flex';renderEvents();
-    }catch(err){
-      grid.innerHTML='<div class="error-msg">⚠️ '+(err.message||'Could not load events.')+'</div><div class="empty-state"><div class="empty-emoji">😔</div><div class="empty-title">Something went wrong</div><div class="empty-sub">Check your connection and try again</div></div>';
+let allEvents=[],currentFilter='all',currentView='grid',currentDate='today',currentHood='',currentLat=51.0447,currentLng=-114.0719,mapInstance=null,mapMarkers=[];
+const ICONS={music:'🎵',food:'🍽️',arts:'🎨',sports:'⚽',fitness:'💪',community:'🤝',nightlife:'🌙',film:'🎬',markets:'🛍️',outdoor:'🏔️',default:'⚡'};
+const HOOD_COORDS={
+  'Kensington':[51.0530,-114.0850],'Hillhurst':[51.0530,-114.0990],'Sunnyside':[51.0580,-114.0880],
+  'Crescent Heights':[51.0620,-114.0760],'Mount Pleasant':[51.0680,-114.0870],'Tuxedo Park':[51.0680,-114.0760],
+  'Bowness':[51.0880,-114.1850],'Montgomery':[51.0760,-114.1600],'Varsity':[51.0920,-114.1620],
+  'Silver Springs':[51.1060,-114.1850],'Tuscany':[51.1220,-114.2160],'Downtown Core':[51.0447,-114.0719],
+  'Eau Claire':[51.0530,-114.0760],'Chinatown':[51.0480,-114.0680],'Beltline':[51.0392,-114.0850],
+  'Mission':[51.0330,-114.0850],'17th Ave SW':[51.0360,-114.0900],'4th Street SW':[51.0360,-114.0780],
+  'Altadore':[51.0150,-114.0960],'Marda Loop':[51.0220,-114.0990],'Currie Barracks':[51.0250,-114.1350],
+  'Bridgeland':[51.0530,-114.0470],'Inglewood':[51.0392,-114.0219],'East Village':[51.0440,-114.0540],
+  'Victoria Park':[51.0370,-114.0620],'Ramsay':[51.0310,-114.0350],'Forest Lawn':[51.0370,-113.9750],
+  'Marlborough':[51.0550,-113.9760],'Martindale':[51.1050,-113.9640],'Coventry Hills':[51.1630,-114.0290],
+  'Panorama Hills':[51.1560,-114.0620],'Sage Hill':[51.1700,-114.1600],'South Calgary':[50.9760,-114.0990],
+  'Evergreen':[50.9450,-114.1150],'Shawnessy':[50.9420,-114.0660],'Legacy':[50.8980,-114.0230],
+  'McKenzie Towne':[50.9560,-113.9680],'Auburn Bay':[50.9380,-113.9510],'Mahogany':[50.9220,-113.9270]
+};
+const POSTAL_HOOD={
+  'T2N':'Kensington','T2M':'Crescent Heights','T2R':'Beltline','T2S':'Mission','T2E':'Bridgeland',
+  'T2P':'Downtown Core','T2G':'Inglewood','T2T':'Marda Loop','T3E':'Currie Barracks','T3B':'Bowness',
+  'T3A':'Varsity','T3L':'Tuscany','T3R':'Sage Hill','T3K':'Panorama Hills','T3J':'Martindale',
+  'T2A':'Forest Lawn','T2W':'South Calgary','T2Y':'Evergreen','T2X':'Legacy','T2Z':'McKenzie Towne',
+  'T3M':'Auburn Bay','T2Z':'McKenzie Towne'
+};
+function getDateLabel(k){const n=new Date();if(k==='today')return 'Today';if(k==='tomorrow'){const t=new Date(n);t.setDate(t.getDate()+1);return t.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});}if(k==='weekend')return 'This Weekend';if(k==='week')return 'This Week';return 'Today';}
+function getDateISO(k){const n=new Date();if(k==='today')return n.toISOString().split('T')[0];if(k==='tomorrow'){const t=new Date(n);t.setDate(t.getDate()+1);return t.toISOString().split('T')[0];}if(k==='weekend'){const d=n.getDay(),diff=d===6?0:(6-d),s=new Date(n);s.setDate(n.getDate()+diff);return s.toISOString().split('T')[0];}if(k==='week'){const m=new Date(n),d=n.getDay();m.setDate(n.getDate()-(d===0?6:d-1));return m.toISOString().split('T')[0];}return n.toISOString().split('T')[0];}
+function onHoodChange(){
+  const sel=document.getElementById('hood-select').value;
+  if(!sel){clearLocation();return;}
+  const parts=sel.split('|');
+  currentHood=parts[0];
+  currentLat=parseFloat(parts[2]);
+  currentLng=parseFloat(parts[3]);
+  document.getElementById('clear-hood-btn').classList.add('visible');
+  doSearch();
+}
+function onPostalInput(){
+  const raw=document.getElementById('postal-input').value.replace(/\s/g,'').toUpperCase();
+  if(raw.length>=3){
+    const prefix=raw.substring(0,3);
+    const hood=POSTAL_HOOD[prefix];
+    if(hood){
+      currentHood=hood;
+      const coords=HOOD_COORDS[hood];
+      if(coords){currentLat=coords[0];currentLng=coords[1];}
+      document.getElementById('hood-select').value=Object.values([...document.querySelectorAll('#hood-select option')]).find(o=>o.value.startsWith(hood+'|'))?.["value"]||'';
+      document.getElementById('clear-hood-btn').classList.add('visible');
+      if(raw.length>=6)doSearch();
     }
-    btn.disabled=false;
   }
+}
+function clearLocation(){
+  currentHood='';currentLat=51.0447;currentLng=-114.0719;
+  document.getElementById('hood-select').value='';
+  document.getElementById('postal-input').value='';
+  document.getElementById('clear-hood-btn').classList.remove('visible');
+  document.getElementById('hood-badge').classList.remove('visible');
+  if(allEvents.length)renderEvents();
+}
+function setDate(k,btn){currentDate=k;document.querySelectorAll('.date-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');doSearch();}
+function setView(v){currentView=v;document.getElementById('btn-grid').classList.toggle('active',v==='grid');document.getElementById('btn-list').classList.toggle('active',v==='list');document.getElementById('events-grid').classList.toggle('list-view',v==='list');}
+function handleKey(e){if(e.key==='Enter')doSearch();}
+function quickSearch(q){document.getElementById('search-input').value=q;doSearch();}
+function filterBy(cat,btn){currentFilter=cat;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderEvents();}
+function buildEventLink(e){if(e.url&&e.url.startsWith('http'))return e.url;return 'https://www.google.com/search?q='+encodeURIComponent((e.name||'')+' '+(e.venue||'')+' Calgary');}
+function getEventCoords(e){
+  const hood=e.neighbourhood||e.area||'';
+  const coords=HOOD_COORDS[hood];
+  if(coords){
+    const jitter=(Math.random()-0.5)*0.004;
+    return[coords[0]+jitter,coords[1]+jitter];
+  }
+  return[51.0447+(Math.random()-0.5)*0.04,-114.0719+(Math.random()-0.5)*0.06];
+}
+function toggleMap(){
+  const mapEl=document.getElementById('map-container');
+  const btn=document.getElementById('btn-map');
+  const isVisible=mapEl.classList.toggle('visible');
+  btn.classList.toggle('active',isVisible);
+  if(isVisible){
+    if(!mapInstance){
+      mapInstance=L.map('map',{zoomControl:true}).setView([currentLat,currentLng],13);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+        attribution:'&copy; <a href="https://carto.com">CARTO</a>',
+        subdomains:'abcd',maxZoom:19
+      }).addTo(mapInstance);
+    } else {
+      mapInstance.setView([currentLat,currentLng],13);
+      setTimeout(()=>mapInstance.invalidateSize(),200);
+    }
+    renderMapMarkers();
+  }
+}
+function renderMapMarkers(){
+  if(!mapInstance)return;
+  mapMarkers.forEach(m=>m.remove());
+  mapMarkers=[];
+  const events=currentFilter==='all'?allEvents:allEvents.filter(e=>{
+    if(currentFilter==='free')return(e.price||'').toLowerCase()==='free';
+    return[(e.category||''),...(e.tags||[]),(e.name||'')].join(' ').toLowerCase().includes(currentFilter);
+  });
+  events.forEach(e=>{
+    const coords=getEventCoords(e);
+    const icon=ICONS[(e.category||'').toLowerCase()]||ICONS.default;
+    const divIcon=L.divIcon({className:'',html:'<div style="background:#3a5c2e;border:2px solid #a8cc88;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 8px rgba(0,0,0,0.5)">'+icon+'</div>',iconSize:[32,32],iconAnchor:[16,16]});
+    const link=buildEventLink(e);
+    const isFree=!e.price||e.price.toLowerCase()==='free';
+    const popup='<div class="map-popup"><h4>'+e.name+'</h4><p>'+((e.venue||'')+(e.neighbourhood?' · '+e.neighbourhood:''))+'</p><p>'+(e.time||'')+(isFree?' · <b style=\"color:#2a6627\">Free</b>':e.price?' · <b>'+e.price+'</b>':'')+'</p><a href="'+link+'" target="_blank">View event ↗</a></div>';
+    const marker=L.marker(coords,{icon:divIcon}).addTo(mapInstance).bindPopup(popup);
+    mapMarkers.push(marker);
+  });
+  if(events.length&&mapMarkers.length){
+    const group=L.featureGroup(mapMarkers);
+    mapInstance.fitBounds(group.getBounds().pad(0.15));
+  }
+}
+function renderEvents(){
+  const grid=document.getElementById('events-grid');
+  let events=currentFilter==='all'?allEvents:allEvents.filter(e=>{
+    if(currentFilter==='free')return(e.price||'').toLowerCase()==='free';
+    return[(e.category||''),...(e.tags||[]),(e.name||'')].join(' ').toLowerCase().includes(currentFilter);
+  });
+  const dateLabel=getDateLabel(currentDate);
+  document.getElementById('results-count').textContent=events.length+' events · '+dateLabel;
+  const hoodBadge=document.getElementById('hood-badge');
+  if(currentHood){hoodBadge.textContent='📍 '+currentHood;hoodBadge.classList.add('visible');}else{hoodBadge.classList.remove('visible');}
+  if(!events.length){grid.innerHTML='<div class="empty-state"><div class="empty-emoji">🔍</div><div class="empty-title">No events for this filter</div><div class="empty-sub">Try a different category</div></div>';return;}
+  grid.innerHTML=events.map((e,i)=>{
+    const icon=ICONS[(e.category||'').toLowerCase()]||ICONS.default;
+    const tags=(e.tags||[]).slice(0,3).map(t=>'<span class="tag">#'+t+'</span>').join('');
+    const isFree=!e.price||e.price.toLowerCase()==='free';
+    const link=buildEventLink(e);
+    const dl=currentDate==='today'?'Today':dateLabel;
+    return '<a class="event-card" href="'+link+'" target="_blank" rel="noopener noreferrer">'+
+      '<div class="card-top"><div class="card-category"><div class="cat-icon">'+icon+'</div><div><div class="cat-label">'+(e.category||'Event')+'</div><div class="cat-location">'+(e.neighbourhood||e.area||'Calgary')+'</div></div></div>'+
+      '<div class="card-badges">'+(i<4||e.hot?'<div class="badge-hot">🔥</div>':'')+'</div></div>'+
+      '<div class="card-body"><div class="event-name">'+e.name+'</div>'+(e.description?'<div class="event-desc">'+e.description+'</div>':'')+(tags?'<div class="event-tags">'+tags+'</div>':'')+'</div>'+
+      '<div class="card-footer"><div><div class="event-venue">'+(e.venue||e.location||'')+'</div><div class="event-time">'+dl+' · '+(e.time||'')+'</div><div class="event-link-hint">↗ View event</div></div>'+
+      '<div class="event-price '+(isFree?'':'paid')+'">'+(isFree?'Free':e.price)+'</div></div></a>';
+  }).join('');
+  if(document.getElementById('map-container').classList.contains('visible'))renderMapMarkers();
+}
+async function doSearch(){
+  const q=document.getElementById('search-input').value.trim()||'all events';
+  const btn=document.getElementById('search-btn');
+  const grid=document.getElementById('events-grid');
+  const filterBar=document.getElementById('filter-bar');
+  const resultsHeader=document.getElementById('results-header');
+  btn.disabled=true;filterBar.style.display='none';resultsHeader.style.display='none';
+  const dl=getDateLabel(currentDate);
+  const sources=['Google Events','Eventbrite','Meetup','Lu.ma','Tourism YYC','Facebook','Ticketmaster','Reddit YYC','Live Nation','Arts Commons','Calgary Parks','Community Board'];
+  const hoodNote=currentHood?' in '+currentHood:'';
+  grid.innerHTML='<div class="loading-state"><div class="spinner"></div><div class="loading-title">Finding events for '+dl+'...</div><div class="loading-sub">Checking live sources for "'+q+'"'+hoodNote+' in Calgary</div><div class="source-chips">'+sources.map(s=>'<div class="source-chip" id="sc-'+s.replace(/[^a-z]/gi,'')+'">'+s+'</div>').join('')+'</div></div>';
+  let d=0;for(const s of sources){setTimeout(()=>{const el=document.getElementById('sc-'+s.replace(/[^a-z]/gi,''));if(el)el.classList.add('done');},d);d+=160;}
+  try{
+    const res=await fetch('/api/scrape',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({city:'Calgary',query:q,date:getDateISO(currentDate),dateRange:currentDate,neighbourhood:currentHood})});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    allEvents=data.events||[];currentFilter='all';
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    document.querySelector('.filter-chip').classList.add('active');
+    filterBar.style.display='flex';resultsHeader.style.display='flex';renderEvents();
+  }catch(err){
+    grid.innerHTML='<div class="error-msg">⚠️ '+(err.message||'Could not load events.')+'</div>';
+  }
+  btn.disabled=false;
+}
 </script>
 </body>
 </html>
