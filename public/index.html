@@ -6,7 +6,63 @@
 <title>today. — Calgary Events</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+let currentModalEventUrl = '';
+function openModal(idx) {
+  const e = allEvents[idx];
+  if (!e) return;
+  const ICONS2 = {music:'🎵',food:'🍽️',arts:'🎨',sports:'⚽',fitness:'💪',community:'🤝',nightlife:'🌙',film:'🎬',markets:'🛍️',outdoor:'🏔️',default:'⚡'};
+  const isFree = !e.price || e.price.toLowerCase() === 'free';
+  const link = buildEventLink(e);
+  document.getElementById('modal-hero-img').src = e.image || '';
+  document.getElementById('modal-hero-wrap').style.display = e.image ? '' : 'none';
+  document.getElementById('modal-cat-row').textContent = (e.category || '').toUpperCase();
+  document.getElementById('modal-name').textContent = e.name || '';
+  document.getElementById('modal-meta-row').innerHTML =
+    '<span class="modal-meta-pill">📍 ' + (e.neighbourhood || e.area || 'Calgary') + '</span>' +
+    '<span class="modal-meta-pill">🏢 ' + (e.venue || '') + '</span>' +
+    '<span class="modal-meta-pill">🕐 ' + (e.date || '') + ' · ' + (e.time || '') + '</span>' +
+    '<span class="modal-meta-pill' + (isFree ? ' " style="color:#2a6627' : '') + '">' + (isFree ? '✨ Free' : '💳 ' + e.price) + '</span>';
+  document.getElementById('modal-desc-text').textContent = e.description || '';
+  const tags = (e.tags || []).slice(0, 5);
+  document.getElementById('modal-tag-row').innerHTML = tags.map(t => '<span class="tag">#' + t + '</span>').join('');
+  document.getElementById('modal-btn-main').href = link;
+  currentModalEventUrl = link;
+  document.getElementById('modal-live-section').style.display = 'none';
+  document.getElementById('modal-live-box').innerHTML = '';
+  document.getElementById('event-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Fetch live event details
+  fetchEventDetails(link);
+}
+function closeModal() {
+  document.getElementById('event-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(ev) {
+  if (ev.target === document.getElementById('event-modal-overlay')) closeModal();
+}
+async function fetchEventDetails(url) {
+  if (!url || url.includes('google.com')) return;
+  const liveSection = document.getElementById('modal-live-section');
+  const liveBox = document.getElementById('modal-live-box');
+  liveSection.style.display = '';
+  liveBox.innerHTML = '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted)"><div style="width:14px;height:14px;border-radius:50%;border:2px solid rgba(0,0,0,0.1);border-top-color:var(--text-muted);animation:spin .6s linear infinite"></div>Loading details...</div>';
+  try {
+    const resp = await fetch('/api/event-details?url=' + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
+    if (!resp.ok) throw new Error('not ok');
+    const data = await resp.json();
+    if (data.excerpt) {
+      liveBox.textContent = data.excerpt;
+    } else {
+      liveSection.style.display = 'none';
+    }
+  } catch(e) {
+    liveSection.style.display = 'none';
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--green-dark:#1e2f1a;--green-mid:#253d1f;--green-card:#28391f;--green-hover:#2f4a27;--cream:#f0ede6;--cream2:#e4e0d8;--text-dark:#1a2410;--text-muted:#6b7c5e;--text-light:rgba(255,255,255,0.5);--tag-bg:#e4ecd8;--tag-text:#3a5030;--price-green:#2a6627}
@@ -100,6 +156,7 @@ nav{position:sticky;top:0;z-index:200;padding:14px 24px;display:flex;align-items
 .map-popup h4{font-size:13px;font-weight:700;margin-bottom:4px;color:#1a2410}
 .map-popup p{font-size:11px;color:#6b7c5e;margin-bottom:4px}
 .map-popup a{font-size:11px;color:#3a5c2e;font-weight:600;text-decoration:none}
+.card-img-wrap{position:relative;overflow:hidden;height:155px;background:#c8c4bc;border-radius:20px 20px 0 0}.card-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .3s;display:block}.event-card:hover .card-img-wrap img{transform:scale(1.05)}.card-img-badge{position:absolute;bottom:8px;left:10px;background:rgba(30,47,26,0.8);backdrop-filter:blur(6px);border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);text-transform:uppercase;letter-spacing:.1em}.card-img-hot-badge{position:absolute;top:8px;right:8px;font-size:16px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}.event-modal-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,8,0.72);backdrop-filter:blur(5px);align-items:flex-end;justify-content:center}.event-modal-overlay.open{display:flex}.event-modal{background:var(--cream);border-radius:24px 24px 0 0;max-width:600px;width:100%;max-height:92vh;overflow-y:auto;position:relative;animation:slideUp .22s cubic-bezier(.34,1.56,.64,1)}@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}.modal-hero-wrap{position:relative;height:200px;background:#c8c4bc;border-radius:24px 24px 0 0;overflow:hidden}.modal-hero-wrap img{width:100%;height:100%;object-fit:cover;display:block}.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(4px);font-family:inherit;line-height:1}.modal-body{padding:22px 22px 28px}.modal-cat-row{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px}.modal-name{font-size:22px;font-weight:800;line-height:1.2;letter-spacing:-.4px;margin-bottom:14px;color:var(--text-dark)}.modal-meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.modal-meta-pill{display:flex;align-items:center;gap:4px;padding:5px 11px;background:var(--cream2);border-radius:20px;font-size:12px;font-weight:600;color:var(--text-dark)}.modal-desc-text{font-size:13px;line-height:1.65;color:var(--text-muted);margin-bottom:14px}.modal-tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}.modal-live-section{margin-bottom:18px}.modal-live-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}.modal-live-box{background:var(--cream2);border-radius:12px;padding:12px;font-size:13px;color:var(--text-muted);line-height:1.6;max-height:120px;overflow:hidden;position:relative}.modal-live-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,var(--cream2))}.modal-actions{display:flex;gap:8px}.modal-btn-main{flex:1;padding:13px;border-radius:13px;background:var(--text-dark);color:var(--cream);font-size:14px;font-weight:700;border:none;cursor:pointer;text-decoration:none;text-align:center;font-family:inherit;display:block;transition:background .15s}.modal-btn-main:hover{background:#2d4022;color:var(--cream)}.modal-btn-sec{padding:13px 16px;border-radius:13px;background:var(--cream2);color:var(--text-dark);font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
@@ -341,12 +398,13 @@ function renderEvents(){
     const isFree=!e.price||e.price.toLowerCase()==='free';
     const link=buildEventLink(e);
     const dl=currentDate==='today'?'Today':dateLabel;
-    return '<a class="event-card" href="'+link+'" target="_blank" rel="noopener noreferrer">'+
+    return '<div class="event-card" onclick="openModal('+i+')">'+
+      (e.image ? '<div class="card-img-wrap"><img src="'+e.image+'" alt="'+e.name+'" loading="lazy" onerror="this.parentElement.style.display=\\"none\\""/><span class="card-img-badge">'+(e.category||'event')+'</span>'+(i<4||e.hot?'<span class="card-img-hot-badge">&#x1F525;</span>':'')+'</div>' : '')++
       '<div class="card-top"><div class="card-category"><div class="cat-icon">'+icon+'</div><div><div class="cat-label">'+(e.category||'Event')+'</div><div class="cat-location">'+(e.neighbourhood||e.area||'Calgary')+'</div></div></div>'+
       '<div class="card-badges">'+(i<4||e.hot?'<div class="badge-hot">🔥</div>':'')+'</div></div>'+
       '<div class="card-body"><div class="event-name">'+e.name+'</div>'+(e.description?'<div class="event-desc">'+e.description+'</div>':'')+(tags?'<div class="event-tags">'+tags+'</div>':'')+'</div>'+
       '<div class="card-footer"><div><div class="event-venue">'+(e.venue||e.location||'')+'</div><div class="event-time">'+dl+' · '+(e.time||'')+'</div><div class="event-link-hint">↗ View event</div></div>'+
-      '<div class="event-price '+(isFree?'':'paid')+'">'+(isFree?'Free':e.price)+'</div></div></a>';
+      '<div class="event-price '+(isFree?'':'paid')+'">'+(isFree?'Free':e.price)+'</div></div></div>';
   }).join('');
   if(document.getElementById('map-container').classList.contains('visible'))renderMapMarkers();
 }
@@ -376,5 +434,6 @@ async function doSearch(){
   btn.disabled=false;
 }
 </script>
+<div class="event-modal-overlay" id="event-modal-overlay" onclick="handleOverlayClick(event)"><div class="event-modal" id="event-modal"><button class="modal-close" onclick="closeModal()">&#x2715;</button><div class="modal-hero-wrap" id="modal-hero-wrap"><img id="modal-hero-img" src="" alt="" onerror="this.parentElement.style.display='none'"/></div><div class="modal-body"><div id="modal-cat-row" class="modal-cat-row"></div><div id="modal-name" class="modal-name"></div><div id="modal-meta-row" class="modal-meta-row"></div><div id="modal-desc-text" class="modal-desc-text"></div><div id="modal-tag-row" class="modal-tag-row"></div><div id="modal-live-section" class="modal-live-section" style="display:none"><div class="modal-live-title">Live from event page</div><div id="modal-live-box" class="modal-live-box"></div></div><div class="modal-actions"><a id="modal-btn-main" href="#" target="_blank" rel="noopener noreferrer" class="modal-btn-main">View Full Event &#x2197;</a><button class="modal-btn-sec" onclick="closeModal()">Close</button></div></div></div></div>
 </body>
 </html>
