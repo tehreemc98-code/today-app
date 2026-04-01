@@ -399,7 +399,7 @@ function renderEvents(){
     const link=buildEventLink(e);
     const dl=currentDate==='today'?'Today':dateLabel;
     return '<div class="event-card" onclick="openModal('+i+')">'+
-      (e.image ? '<div class="card-img-wrap"><img src="'+e.image+'" alt="'+e.name+'" loading="lazy" onerror="this.parentElement.style.display=\\"none\\""/><span class="card-img-badge">'+(e.category||'event')+'</span>'+(i<4||e.hot?'<span class="card-img-hot-badge">&#x1F525;</span>':'')+'</div>' : '')++
+      (e.image ? '<div class="card-img-wrap"><img src="'+e.image+'" alt="'+e.name+'" loading="lazy" onerror="this.parentElement.style.display=\\"none\\""/><span class="card-img-badge">'+(e.category||'event')+'</span>'+(i<4||e.hot?'<span class="card-img-hot-badge">&#x1F525;</span>':'')+'</div>' : '')+
       '<div class="card-top"><div class="card-category"><div class="cat-icon">'+icon+'</div><div><div class="cat-label">'+(e.category||'Event')+'</div><div class="cat-location">'+(e.neighbourhood||e.area||'Calgary')+'</div></div></div>'+
       '<div class="card-badges">'+(i<4||e.hot?'<div class="badge-hot">🔥</div>':'')+'</div></div>'+
       '<div class="card-body"><div class="event-name">'+e.name+'</div>'+(e.description?'<div class="event-desc">'+e.description+'</div>':'')+(tags?'<div class="event-tags">'+tags+'</div>':'')+'</div>'+
